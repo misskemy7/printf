@@ -1,42 +1,62 @@
 #include "main.h"
-#include <unistd.h>
 
 /**
- * _putchar - writes the character c to stdout
- * @c: The character to print
- * Return: On success 1.
- * On error, -1 is returned, and errno is set appropriately.
- * Description: _putchar uses a local buffer of 1024 to call write
- * as little as possible
+ * get_func - returns needed function
+ * @i: identifier for function
+ * Return: Pointer to needed function
  */
-int _putchar(char c)
+char* (*get_func(char i))(va_list)
 {
-	static char buf[1024];
-	static int i;
+	int k = 0;
 
-	if (c == -1 || i >= 1024)
+	print keys[] = {
+		{'c', print_c},
+		{'s', print_s},
+		{'d', print_d},
+		{'i', print_d},
+		{'b', itob},
+		{'R', rot13},
+		{'r', rev_string},
+		{'o', itoOctal},
+		{'\0', NULL}
+	};
+
+	while (keys[k].id != '\0')
 	{
-		write(1, &buf, i);
-		i = 0;
+		if (keys[k].id == i)
+			return (keys[k].func);
+		k++;
 	}
-	if (c != -1)
-	{
-		buf[i] = c;
-		i++;
-	}
-	return (1);
+	return (NULL);
 }
 
 /**
- * _puts - prints a string to stdout
- * @str: pointer to the string to print
- * Return: number of chars written
+ * create_buffer - creates buffer to hold string until it's ready for print
+ * Return: pointer to buffer created
  */
-int _puts(char *str)
+char *create_buffer(void)
 {
-	register int i;
+	char *buffer;
 
-	for (i = 0; str[i] != '\0'; i++)
-		_putchar(str[i]);
-	return (i);
+	buffer = malloc(sizeof(char) * 1024);
+	if (buffer == NULL)
+		return (NULL);
+	return (buffer);
+}
+
+/**
+ * write_buffer - prints buffer, then frees it and frees va_list
+ * @buffer: buffer holding print-ables
+ * @len: length of print-able string
+ * @list: va_list
+ */
+void write_buffer(char *buffer, int len, va_list list)
+{
+	char *buff;
+
+	buff = realloc(buffer, len); /* realloc to correct size */
+	write(1, buff, len); /* print */
+
+	free(buff);
+	va_end(list);
 }

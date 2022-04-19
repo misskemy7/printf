@@ -1,49 +1,37 @@
-#include "main.h"
+#ifndef MAIN_H
+#define MAIN_H
+
+#include <stdarg.h> /* va_list */
+#include <stdlib.h> /* malloc, free */
+#include <unistd.h> /* write */
+
+/* helper functions */
+char* (*get_func(char i))(va_list);
+char *create_buffer(void);
+void write_buffer(char *buffer, int len, va_list list);
+char *_strcpy(char *dest, char *src);
+int _strlen(char *s);
+
+/* printf functions */
+int _printf(const char *format, ...);
+char *print_s(va_list list);
+char *print_c(va_list list);
+char *print_d(va_list list);
+char *itob(va_list list);
+char *rot13(va_list list);
+char *rev_string(va_list list);
+char *itoOctal(va_list list);
 
 /**
- * itob - change int to binary
- * @list: int to change
- * Return: string with binary
+ * struct types - struct
+ * @id: identifier of type to print (e.g. c means char)
+ * @func: ptr to functions that print according to identifier (e.g. print_c)
  */
 
-char *itob(va_list list)
+typedef struct types
 {
-	int j = 0, twos = 1;
-	int i, k;
-	char *s;
+	char id;
+	char* (*func)(va_list);
+} print;
 
-	k = va_arg(list, int);
-	i = k;
-
-	/* malloc up to max int in binary */
-	s = malloc(sizeof(char) * 33);
-	if (s == NULL)
-		return (NULL);
-
-	/* account for negative numbers with '1' at index 0 */
-	if (k < 0)
-	{
-		s[0] = 1 + '0';
-		j++;
-		k *= -1;
-		i *= -1;
-	}
-
-	/* find biggest power of 2 it's divisible by */
-	while (k > 1)
-	{
-		k /= 2;
-		twos *= 2;
-	}
-
-	/* divide down and store binary num */
-	while (twos > 0)
-	{
-		s[j++] = (i / twos + '0');
-		i %= twos;
-		twos /= 2;
-	}
-	s[j] = '\0';
-
-	return (s);
-}
+#endif

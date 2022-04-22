@@ -1,104 +1,51 @@
 #include "main.h"
 
 /**
- * check_buffer_overflow - if writing over buffer space,
- * print everything then revert length back to 0 to write at buffer start
- * @buffer: buffer holding string to print
- * @len: position in buffer
- * Return: length position
- */
-int check_buffer_overflow(char *buffer, int len)
-{
-	if (len > 1020)
-	{
-		write(1, buffer, len);
-		len = 0;
-	}
-	return (len);
-}
-
-/**
- * _printf - mini printf version
- * @format: initial string with all identifiers
- * Return: strings with identifiers expanded
+ * _printf - formatted output conversion and print data.
+ * @format: input string.
+ *
+ * Return: number of chars printed.
  */
 int _printf(const char *format, ...)
 {
-	int len = 0, total_len = 0, i = 0, j = 0;
-	va_list list;
-	char *buffer, *str;
-	char* (*f)(va_list);
+	unsigned int i = 0, len = 0, ibuf = 0;
+	va_list arguments;
+	int (*function)(va_list, char *, unsigned int);
+	char *buffer;
 
-	if (format == NULL)
+	va_start(arguments, format), buffer = malloc(sizeof(char) * 1024);
+	if (!format || !buffer || (format[i] == '%' && !format[i + 1]))
 		return (-1);
-
-	buffer = create_buffer();
-	if (buffer == NULL)
-		return (-1);
-
-	va_start(list, format);
-
-	while (format[i] != '\0')
+	if (!format[i])
+		return (0);
+	for (i = 0; format && format[i]; i++)
 	{
-		if (format[i] != '%') /* copy format into buffer until '%' */
+		if (format[i] == '%')
 		{
-			len = check_buffer_overflow(buffer, len);
-			buffer[len++] = format[i++];
-			total_len++;
-		}
-		else /* if %, find function */
-		{
-			i++;
-			if (format[i] == '\0') /* handle single ending % */
-			{
-				va_end(list);
-				free(buffer);
+			if (format[i + 1] == '\0')
+			{	print_buf(buffer, ibuf), free(buffer), va_end(arguments);
 				return (-1);
 			}
-			if (format[i] == '%') /* handle double %'s */
-			{
-				len = check_buffer_overflow(buffer, len);
-				buffer[len++] = format[i];
-				total_len++;
-			}
 			else
-			{
-				f = get_func(format[i]); /* grab function */
-				if (f == NULL)  /* handle fake id */
+			{	function = get_print_func(format, i + 1);
+				if (function == NULL)
 				{
-					len = check_buffer_overflow(buffer, len);
-					buffer[len++] = '%';
-					total_len++;
-					buffer[len++] = format[i];
-					total_len++;
-				}
-				else /* return string, copy to buffer */
-				{
-					str = f(list);
-					if (str == NULL)
-					{
-						va_end(list);
-						free(buffer);
+					if (format[i + 1] == ' ' && !format[i + 2])
 						return (-1);
-					}
-					if (format[i] == 'c' && str[0] == '\0')
-					{
-						len = check_buffer_overflow(buffer, len);
-						buffer[len++] = '\0';
-						total_len++;
-					}
-					j = 0;
-					while (str[j] != '\0')
-					{
-						len = check_buffer_overflow(buffer, len);
-						buffer[len++] = str[j];
-						total_len++; j++;
-					}
-					free(str);
+					handl_buf(buffer, format[i], ibuf), len++, i--;
+				}
+				else
+				{
+					len += function(arguments, buffer, ibuf);
+					i += ev_print_func(format, i + 1);
 				}
 			}	i++;
 		}
+		else
+			handl_buf(buffer, format[i], ibuf), len++;
+		for (ibuf = len; ibuf > 1024; ibuf -= 1024)
+			;
 	}
-	write_buffer(buffer, len, list);
-	return (total_len);
+	print_buf(buffer, ibuf), free(buffer), va_end(arguments);
+	return (len);
 }

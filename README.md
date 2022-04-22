@@ -1,1 +1,1 @@
-This is a repository that contains our first printf teamwork in ALX
+printf project by Ekemini Barnaby and Michael Abaniwo
